@@ -31,8 +31,8 @@ type TunnelRequested struct {
 type TunnelOpenened struct {
 	Hostname      string
 	Protocol      string
-	PublicServer  string
-	PrivateServer string
+	PublicServer  uint16
+	PrivateServer uint16
 	ErrorMessage  string
 }
 
@@ -79,21 +79,21 @@ func (e *Event[EventType]) encode() ([]byte, error) {
 
 func (e *Event[EventType]) Read(conn io.Reader) error {
 	buffer := make([]byte, 2)
-	if _,err := conn.Read(buffer),err != nil{
+	if _, err := conn.Read(buffer); err != nil {
 		return err
 	}
 	length := binary.LittleEndian.Uint16(buffer)
 	buffer = make([]byte, length)
-	if _,err := conn.Read(buffer),err != nil{
+	if _, err := conn.Read(buffer); err != nil {
 		return err
 	}
-	err:=e.Decode(buffer)
+	err := e.decode(buffer)
 	return err
 }
 
-func (e *Event[EventType]) Decode(data []byte) error {
-		buffer:=bytes.NewBuffer(data)
-		dec:=gob.NewDecoder(buffer)
-		err:=dec.Decode(&data)
-		return err
+func (e *Event[EventType]) decode(data []byte) error {
+	buffer := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buffer)
+	err := dec.Decode(&data)
+	return err
 }
